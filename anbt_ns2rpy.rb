@@ -292,14 +292,14 @@ class Script
         @parsed << "label #{args}:"
         
       when "br"
-        #$stderr.puts "_BBBB #{count} BBBBB_#{line}__" if @file_number == "03"
+        #$stderr.puts "#{count} #{line}" if @file_number == "03"
         @buf << " __br__ "
         
       when "cl" # 立ち絵消去
         args.strip!
         /(.+?),(\d)$/ =~ args
         pos, trans_sec = $1, $2
-        #$stderr.puts "GGGGGGGG#{args}GGGGGG #{pos}__#{trans_sec} GGGGGGGGg"
+        #$stderr.puts "#{args}__#{pos}__#{trans_sec}"
         if pos == "a"
           add %{scene bg #{@current_bg}}
         else
@@ -328,7 +328,6 @@ class Script
           add %Q!show #{chara} at #{pos.full_pos} ###############!
           add %Q!with temp_dissolve! if trans_sec
         else
-          $stderr.puts "@@@@@@@@@@@@@ "
           raise "syntax error at line #{@file_number}-#{count}."
         end
         
