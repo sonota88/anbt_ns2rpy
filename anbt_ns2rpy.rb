@@ -62,28 +62,45 @@ class NScripter
   end
   
   
-  def regist_bg
+  def regist
     src = File.read $SCRIPT_RPY_TEMPLATE
     temp_bg = []
     temp_doll = []
+    temp_variables = []
     
     @scripts.each{|s|
       temp_bg << s.bg_files
       temp_doll << s.doll_files
+      temp_variables << s.variables
     }
     @bg_files = temp_bg.flatten.sort.uniq
     @doll_files = temp_doll.flatten.sort.uniq
+    @variables = temp_variables.flatten.sort.uniq
     
     temp_str_bg = ""
     temp_str_doll = ""
+    temp_str_variables = ""
     str_bg = @bg_files.map{|path|
       %Q!    image bg #{path.path2alias} = "bg/#{path}"!
     }.join("\n")
     str_doll = @doll_files.map{|path|
+      path.sub!(/\.jpg$/, ".png")
       %Q!    image #{path.path2alias} = "doll/#{path}"!
     }.join("\n")
+    str_variables = @variables.map{|var_name|
+      /^(.)(.+)$/ =~ var_name
+      type, var_name = $1, $2
+      case type
+      when "%"
+        %Q!    $ #{var_name} = 0!
+      when "$"
+        %Q!    $ #{var_name} = ""!
+      else
+        ;
+      end
+    }.join("\n")
       
-    src.sub!( /__REGIST__/, [str_bg, str_doll].join("\n\n") )
+    src.sub!( /__REGIST__/, [str_bg, str_doll, str_variables].join("\n\n") )
     
     open("script.rpy", "w"){|fout|
       fout.print src
@@ -102,7 +119,7 @@ end
 
 
 class Script
-  attr_reader :is_last, :bg_files, :doll_files
+  attr_reader :is_last, :bg_files, :doll_files, :variables
 
   def initialize(n)
     @n = n
@@ -134,6 +151,7 @@ class Script
     
     @bg_files = []
     @doll_files = []
+    @variables = []
     @current_doll = {}
     @current_bg = nil
   end
@@ -320,7 +338,7 @@ class Script
           #ld l,":a;akane_pt_ons01.jpg",2
           #$stderr.puts "LD2----__#{$1}__#{$2}__#{$3}__#{$4}__#{$5}__"
           pos, file, trans_sec = $1, $2, $4
-          chara = file.path2chara
+          chara = file.sub(/\.jpg$/, "").path2chara
           @current_doll[pos] = file
           
           @doll_files << file
@@ -348,6 +366,25 @@ class Script
 
       when "goto"
         add %Q!jump #{args.sub("*", "")}!
+
+      ## variable
+      when "mov"
+        case args
+        when /^%([a-zA-Z_]+),(\d)/
+          var_name, val = $1, $2
+          add %Q!$ #{var_name} = #{val}!
+        end
+      when "add"
+        case args
+        when /^%([a-zA-Z_]+),(\d)/
+          var_name, val = $1, $2
+          add %Q!$ #{var_name} += #{val}!
+          @variables << "%" + var_name
+        when /^\$([a-zA-Z_]+),"(.+)"/
+          var_name, val = $1, $2
+          add %Q!$ #{var_name} += "#{val}"!
+          @variables << "$" + var_name
+        end
       
       when "renpy:"
         add args
@@ -395,7 +432,8 @@ $sink_dir = "."
 ns = NScripter.new
 ns.parse_files
 ns.write
-ns.regist_bg
+ns.regist
+
 
 
 =begin
