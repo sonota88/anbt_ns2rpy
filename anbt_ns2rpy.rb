@@ -319,10 +319,14 @@ class Script
         pos, trans_sec = $1, $2
         #$stderr.puts "#{args}__#{pos}__#{trans_sec}"
         if pos == "a"
-          add %{scene bg #{@current_bg}}
+          if @current_bg != nil
+            add %{scene bg #{@current_bg}} 
+          else
+            add %{scene bg black} 
+          end
         else
           p @current_doll
-          chara = @current_doll[pos].path2chara
+          chara = @current_doll[pos].sub(/\.jpg$/, "").path2chara
           add %{$ temp_dissolve = Dissolve(#{trans_sec}) } if trans_sec
           add %{hide #{chara} }
           add %{with temp_dissolve} if trans_sec
