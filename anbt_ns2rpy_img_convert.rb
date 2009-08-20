@@ -42,14 +42,6 @@ DAMAGE.
 
 require "fileutils"
 
-unless ARGV[1]
-  $stderr.puts <<EOB
-usage: #{__FILE__} png2jpg foo.png"
-       or
-       #{__FILE__} jpg2png foo.jpg"
-EOB
-end
-
 
 def jpg2png(jpgfile)
   
@@ -89,6 +81,15 @@ def png2jpg(pngfile)
   color = "color.png"
   
   system "cp #{pngfile} #{color}"
+end
+
+
+unless ARGV[1]
+  $stderr.puts <<EOB
+usage: #{__FILE__} png2jpg foo.png"
+       or
+       #{__FILE__} jpg2png foo.jpg"
+EOB
 end
 
 
