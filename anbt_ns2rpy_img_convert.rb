@@ -40,12 +40,11 @@ DAMAGE.
 =end
 
 
-
 require "fileutils"
 
 unless ARGV[1]
   $stderr.puts <<EOB
-usage: #{__FILE__} png2jpg foo.jpg"
+usage: #{__FILE__} png2jpg foo.png"
        or
        #{__FILE__} jpg2png foo.jpg"
 EOB
@@ -60,7 +59,6 @@ def jpg2png(jpgfile)
   alpha1 = "temp-1.png"
   alpha2 = "alpha.png"
   
-  
   cmd = %{convert -crop 50%x100% #{jpgfile} temp.png}
   puts cmd
   system cmd
@@ -68,7 +66,6 @@ def jpg2png(jpgfile)
   cmd = %{convert #{alpha1} -negate #{alpha2} }
   puts cmd
   system cmd
-  
   
   cmd = %{composite #{alpha2} #{image} -compose CopyOpacity #{result} }
   puts cmd
@@ -78,6 +75,7 @@ def jpg2png(jpgfile)
   FileUtils.rm alpha1
   FileUtils.rm alpha2
 end
+
 
 def png2jpg(pngfile)
   trunk = jpgfile.sub(/\.jpg$/,"")
@@ -91,8 +89,8 @@ def png2jpg(pngfile)
   color = "color.png"
   
   system "cp #{pngfile} #{color}"
-  
 end
+
 
 case ARGV[0]
 when "jpg2png"
